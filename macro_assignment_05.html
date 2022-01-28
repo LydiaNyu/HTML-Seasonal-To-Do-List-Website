@@ -1,0 +1,625 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      .note {
+        width: 150px;
+        height: 150px;
+        margin: 5px;
+        float: left;
+        box-sizing: border-box;
+        padding: 5px;
+        background-color: pink;
+        position: relative;
+      }
+
+      #corkboard {
+        background-image: url('images/corkboard.jpg');
+        min-height: 600px;
+      }
+
+      .tab {
+        display: inline-block;
+        width: 100px;
+        border: 1px solid #ccc;
+        text-align: center;
+        border-radius: 15px 15px 0px 0px;
+        padding: 5px;
+        border-bottom: 0px;
+      }
+
+      .active {
+        background-color: #ccc;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .delButton {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+      }
+      
+      .checButton{
+        position: absolute;
+        top: 0px;
+        right: 25px;
+      }
+      .ediButton{
+        position: absolute;
+        top: 0px;
+        right: 50px;
+      }
+      .lefButton{
+       position: absolute;
+        top: 70px;
+        left: 0px;
+      }
+      .rigButton{
+       position: absolute;
+        top: 70px;
+        right: 0px;
+      }
+
+    </style>
+  </head>
+  <body>
+
+    <h1>Yearly To-Do List</h1>
+
+    <div id="controls">
+      <div id="winter" class="tab active" data-mypanel="winterpanel">Winter</div>
+      <div id="spring" class="tab" data-mypanel="springpanel">Spring</div>
+      <div id="summer" class="tab" data-mypanel="summerpanel">Summer</div>
+      <div id="fall" class="tab" data-mypanel="fallpanel">Fall</div>
+
+      <select id="filter">
+        <option value="all">All Tasks</option>
+        <option value="winter">Winter</option>
+        <option value="spring">Spring</option>
+        <option value="summer">Summer</option>
+        <option value="fall">Fall</option>
+        <option value="completed">Completed</option>
+        <option value="uncompleted">Uncompleted</option>
+      </select>
+    </div>
+
+    <div id="panels">
+      <div id="winterpanel" class="panel">
+        What is something you want to accomplish this winter?
+        <input type="text"><button data-mytype="winter" data-mycolor="DodgerBlue">Add note</button>
+      </div>
+      <div id="springpanel" class="panel hidden">
+        What is something you want to accomplish this spring?
+        <input type="text" value=""><button data-mytype="spring" data-mycolor="MediumSeaGreen">Add note</button>
+      </div>
+      <div id="summerpanel" class="panel hidden">
+        What is something you want to accomplish this summer?
+        <input type="text"><button data-mytype="summer" data-mycolor="Tomato">Add note</button>
+      </div>
+      <div id="fallpanel" class="panel hidden">
+        What is something you want to accomplish this fall?
+        <input type="text"><button data-mytype="fall" data-mycolor="Orange" data-myseason="fall">Add note</button>
+      </div>
+    </div>
+
+
+    <div>
+    <button id = "deleteAll">Delete All Shown Events</button>
+    </div>
+    <div id="corkboard"></div>
+
+    <script>
+
+      // handle the tabs and when the user clicks on them
+      let allTabs = document.querySelectorAll('.tab');
+
+      // visit all tabs
+      for (let i = 0; i < allTabs.length; i++) {
+
+        // have each tab listen for a mouse event
+        allTabs[i].onclick = function(event) {
+          console.log( event.currentTarget );
+
+          // remove the class of active from the other element that currently has it
+          let currentActive = document.querySelector('.active');
+          currentActive.classList.remove('active');
+          event.currentTarget.classList.add('active');
+
+          // hide every panel on the page
+          let allPanels = document.querySelectorAll('.panel');
+          for (let j = 0; j < allPanels.length; j++) {
+            allPanels[j].classList.add('hidden');
+          }
+
+          // show the correct panel that goes along with this season
+          let myPanel = event.currentTarget.dataset.mypanel;
+          document.getElementById( myPanel ).classList.remove('hidden');
+        }
+
+      }
+
+      // grab a ref to each button on the page
+      let allButtons = document.querySelectorAll('button');
+      for (let i = 0; i < allButtons.length; i++) {
+
+        // have each button listen for mouse events
+        allButtons[i].onclick = function(event) {
+          let noteText = event.currentTarget.previousElementSibling.value;
+          
+          if(noteText !== ''){
+          // grab the type of this note
+          let myType = event.currentTarget.dataset.mytype;
+          console.log(i);
+
+          // create a new note
+          let tempNote = document.createElement('div');
+          tempNote.classList.add('note');
+          tempNote.classList.add(myType);
+          tempNote.classList.add('uncompleted');
+
+          // give each note their own delete button
+          let deleteButton = document.createElement('img');
+          deleteButton.src = 'images/delete_button.png';
+          deleteButton.classList.add('hidden');
+          deleteButton.classList.add('delButton');
+          tempNote.appendChild(deleteButton);
+          
+          let checkButton = document.createElement('img');
+          checkButton.src = 'images/checkmark_button.png';
+          checkButton.classList.add('hidden');
+          checkButton.classList.add('checButton');
+          checkButton.setAttribute('data-foo', '0');
+          tempNote.appendChild(checkButton);
+          
+          let editButton = document.createElement('img');
+          editButton.src = 'images/edit_button.png';
+          editButton.classList.add('hidden');
+          editButton.classList.add('ediButton');
+          editButton.setAttribute('data-foo', '0');
+          tempNote.appendChild(editButton);
+          
+          let leftButton = document.createElement('img');
+          leftButton.src = 'left_button.png';
+          leftButton.classList.add('hidden');
+          leftButton.classList.add('lefButton');
+          tempNote.appendChild(leftButton);
+          
+          let rightButton = document.createElement('img');
+          rightButton.src = 'images/right_button.png';
+          rightButton.classList.add('hidden');
+          rightButton.classList.add('rigButton');
+          tempNote.appendChild(rightButton);
+          
+        
+
+          // listen for when the user clicks on the delete button
+          deleteButton.onclick = function(event) {
+            console.log(event.currentTarget.parentElement);
+            event.currentTarget.parentElement.remove();
+            let mynotes = document.querySelectorAll('.note');
+     	    if(mynotes.length == 1){
+       			mynotes[0].onmouseover = function(event){
+        		event.currentTarget.children[0].classList.remove('hidden');
+         		event.currentTarget.children[1].classList.remove('hidden');
+           	    event.currentTarget.children[2].classList.remove('hidden');
+               }
+      		
+      			 mynotes[0].onmouseout = function(event){
+       			 event.currentTarget.children[0].classList.add('hidden');
+            	 event.currentTarget.children[1].classList.add('hidden');
+           		 event.currentTarget.children[2].classList.add('hidden');
+        		 event.currentTarget.children[3].classList.add('hidden');
+        		 event.currentTarget.children[4].classList.add('hidden');
+       			}
+       			 
+      		 }
+      		 
+      		  
+      		  
+      		  let k;
+
+      	for(k = 1; k < mynotes.length-1;k++){
+      		mynotes[k].onmouseover = function(event){
+       		event.currentTarget.children[0].classList.remove('hidden');
+       		event.currentTarget.children[1].classList.remove('hidden');
+            event.currentTarget.children[2].classList.remove('hidden');
+       		event.currentTarget.children[3].classList.remove('hidden');
+       		event.currentTarget.children[4].classList.remove('hidden');
+      	}
+      		mynotes[k].onmouseout = function(event){
+      		event.currentTarget.children[0].classList.add('hidden');
+            event.currentTarget.children[1].classList.add('hidden');
+            event.currentTarget.children[2].classList.add('hidden');
+       		event.currentTarget.children[3].classList.add('hidden');
+       		event.currentTarget.children[4].classList.add('hidden');
+      	}
+      
+      	}
+      	
+      	if(mynotes.length>1){
+      	mynotes[0].onmouseover = function(event){
+       		event.currentTarget.children[0].classList.remove('hidden');
+       		event.currentTarget.children[1].classList.remove('hidden');
+            event.currentTarget.children[2].classList.remove('hidden');
+       		
+       		event.currentTarget.children[4].classList.remove('hidden');
+      	}
+      	mynotes[0].onmouseout = function(event){
+      		event.currentTarget.children[0].classList.add('hidden');
+            event.currentTarget.children[1].classList.add('hidden');
+            event.currentTarget.children[2].classList.add('hidden');
+       		event.currentTarget.children[3].classList.add('hidden');
+       		event.currentTarget.children[4].classList.add('hidden');
+      	}
+      	
+      	mynotes[mynotes.length-1].onmouseover = function(event){
+       		event.currentTarget.children[0].classList.remove('hidden');
+       		event.currentTarget.children[1].classList.remove('hidden');
+            event.currentTarget.children[2].classList.remove('hidden');
+       		
+       		event.currentTarget.children[3].classList.remove('hidden');
+      	}
+      	mynotes[mynotes.length-1].onmouseout = function(event){
+      		event.currentTarget.children[0].classList.add('hidden');
+            event.currentTarget.children[1].classList.add('hidden');
+            event.currentTarget.children[2].classList.add('hidden');
+       		event.currentTarget.children[4].classList.add('hidden');
+       		event.currentTarget.children[3].classList.add('hidden');
+      	}
+      	}
+      		 
+          }
+          
+          
+          
+         
+
+          // grab the color from the button
+          let buttonColor = event.currentTarget.dataset.mycolor;
+          tempNote.style.backgroundColor = buttonColor;
+
+          // grab the text from the previous sibling of teh button
+          
+          let tempP = document.createElement('p');
+          tempP.innerHTML = noteText;
+          tempNote.appendChild(tempP);
+          
+          editButton.onclick = function(event){
+          console.log(event.currentTarget.dataset.foo);
+          if(event.currentTarget.dataset.foo == "0"){
+          let newobj = document.createElement('input');
+          newobj.type = 'text';
+          newobj.value = tempP.innerHTML;
+          let saveB = document.createElement('button');
+          saveB.innerText = 'Save';
+          tempP.classList.add('hidden');
+          event.currentTarget.dataset.foo ="1";
+          
+          tempNote.appendChild(newobj);
+          tempNote.appendChild(saveB);
+          
+          saveB.onclick = function(event){
+          tempP.innerHTML = newobj.value;
+          tempP.classList.remove('hidden');
+          newobj.classList.add('hidden');
+          saveB.classList.add('hidden'); 
+          event.currentTarget.parentNode.children[2].dataset.foo = "0";
+          console.log(event.currentTarget.parentNode.children[2]);
+          }
+         
+          
+          
+          
+          }
+          
+          }
+          
+          checkButton.onclick = function(event){
+           
+          
+          if(event.currentTarget.dataset.foo == "0"){
+          tempP.innerHTML = '&#10003'+ tempP.innerHTML;
+          event.currentTarget.dataset.foo = "1";
+          event.currentTarget.parentNode.classList.remove('uncompleted');
+          event.currentTarget.parentNode.classList.add('completed');
+          }
+          else{
+          tempP.innerHTML = tempP.innerHTML.substring(1);
+          event.currentTarget.dataset.foo = "0";
+          event.currentTarget.parentNode.classList.remove('completed');
+          event.currentTarget.parentNode.classList.add('uncompleted');
+          }
+          
+          }
+          
+
+          // put the note into the corkboard
+          document.querySelector('#corkboard').appendChild( tempNote );
+         
+          
+        }
+        let mynotes = document.querySelectorAll('.note');
+     	let k;
+
+      	for(k = 1; k < mynotes.length-1;k++){
+      		mynotes[k].onmouseover = function(event){
+       		event.currentTarget.children[0].classList.remove('hidden');
+       		event.currentTarget.children[1].classList.remove('hidden');
+            event.currentTarget.children[2].classList.remove('hidden');
+       		event.currentTarget.children[3].classList.remove('hidden');
+       		event.currentTarget.children[4].classList.remove('hidden');
+      	}
+      		mynotes[k].onmouseout = function(event){
+      		event.currentTarget.children[0].classList.add('hidden');
+            event.currentTarget.children[1].classList.add('hidden');
+            event.currentTarget.children[2].classList.add('hidden');
+       		event.currentTarget.children[3].classList.add('hidden');
+       		event.currentTarget.children[4].classList.add('hidden');
+      	}
+      
+      	}
+      	if(mynotes.length == 1){
+       			mynotes[0].onmouseover = function(event){
+        		event.currentTarget.children[0].classList.remove('hidden');
+         		event.currentTarget.children[1].classList.remove('hidden');
+           	    event.currentTarget.children[2].classList.remove('hidden');
+         
+      		 }
+      			 mynotes[0].onmouseout = function(event){
+       			 event.currentTarget.children[0].classList.add('hidden');
+            	 event.currentTarget.children[1].classList.add('hidden');
+           		 event.currentTarget.children[2].classList.add('hidden');
+        		 event.currentTarget.children[3].classList.add('hidden');
+        		 event.currentTarget.children[4].classList.add('hidden');
+       			}
+      		 }
+      	if(mynotes.length>1){
+      	mynotes[0].onmouseover = function(event){
+       		event.currentTarget.children[0].classList.remove('hidden');
+       		event.currentTarget.children[1].classList.remove('hidden');
+            event.currentTarget.children[2].classList.remove('hidden');
+       		
+       		event.currentTarget.children[4].classList.remove('hidden');
+      	}
+      	mynotes[0].onmouseout = function(event){
+      		event.currentTarget.children[0].classList.add('hidden');
+            event.currentTarget.children[1].classList.add('hidden');
+            event.currentTarget.children[2].classList.add('hidden');
+       		event.currentTarget.children[3].classList.add('hidden');
+       		event.currentTarget.children[4].classList.add('hidden');
+      	}
+      	
+      	mynotes[mynotes.length-1].onmouseover = function(event){
+       		event.currentTarget.children[0].classList.remove('hidden');
+       		event.currentTarget.children[1].classList.remove('hidden');
+            event.currentTarget.children[2].classList.remove('hidden');
+       		
+       		event.currentTarget.children[3].classList.remove('hidden');
+      	}
+      	mynotes[mynotes.length-1].onmouseout = function(event){
+      		event.currentTarget.children[0].classList.add('hidden');
+            event.currentTarget.children[1].classList.add('hidden');
+            event.currentTarget.children[2].classList.add('hidden');
+       		event.currentTarget.children[4].classList.add('hidden');
+       		event.currentTarget.children[3].classList.add('hidden');
+      	}
+      	}
+      	
+        
+        
+        let allLeft = document.querySelectorAll('.lefButton')
+      let j;
+      
+      for(j = 0; j<allLeft.length;j++){
+      allLeft[j].onclick = function(event){
+      let div1 = event.currentTarget.parentNode;
+      let div2 = event.currentTarget.parentNode.previousSibling;
+        div1.parentNode.insertBefore(div1,div2);
+        
+        let mynotes = document.querySelectorAll('.note');
+        let k;
+        
+        
+    
+      	for(k = 1; k < mynotes.length-1;k++){
+      		mynotes[k].onmouseover = function(event){
+       		event.currentTarget.children[0].classList.remove('hidden');
+       		event.currentTarget.children[1].classList.remove('hidden');
+            event.currentTarget.children[2].classList.remove('hidden');
+       		event.currentTarget.children[3].classList.remove('hidden');
+       		event.currentTarget.children[4].classList.remove('hidden');
+      	}
+      		mynotes[k].onmouseout = function(event){
+      		event.currentTarget.children[0].classList.add('hidden');
+            event.currentTarget.children[1].classList.add('hidden');
+            event.currentTarget.children[2].classList.add('hidden');
+       		event.currentTarget.children[3].classList.add('hidden');
+       		event.currentTarget.children[4].classList.add('hidden');
+      	}
+      
+      	}
+      	
+      	if(mynotes.length>1){
+      	mynotes[0].onmouseover = function(event){
+       		event.currentTarget.children[0].classList.remove('hidden');
+       		event.currentTarget.children[1].classList.remove('hidden');
+            event.currentTarget.children[2].classList.remove('hidden');
+       		
+       		event.currentTarget.children[4].classList.remove('hidden');
+      	}
+      	mynotes[0].onmouseout = function(event){
+      		event.currentTarget.children[0].classList.add('hidden');
+            event.currentTarget.children[1].classList.add('hidden');
+            event.currentTarget.children[2].classList.add('hidden');
+       		event.currentTarget.children[3].classList.add('hidden');
+       		event.currentTarget.children[4].classList.add('hidden');
+      	}
+      	
+      	mynotes[mynotes.length-1].onmouseover = function(event){
+       		event.currentTarget.children[0].classList.remove('hidden');
+       		event.currentTarget.children[1].classList.remove('hidden');
+            event.currentTarget.children[2].classList.remove('hidden');
+       		
+       		event.currentTarget.children[3].classList.remove('hidden');
+      	}
+      	mynotes[mynotes.length-1].onmouseout = function(event){
+      		event.currentTarget.children[0].classList.add('hidden');
+            event.currentTarget.children[1].classList.add('hidden');
+            event.currentTarget.children[2].classList.add('hidden');
+       		event.currentTarget.children[4].classList.add('hidden');
+       		event.currentTarget.children[3].classList.add('hidden');
+      	}
+      	}
+
+      	      	
+      }
+      }
+      let allRight = document.querySelectorAll('.rigButton')
+      let e;
+      
+   for(e = 0; e<allRight.length;e++){
+      allRight[e].onclick = function(event){
+      let div1 = event.currentTarget.parentNode;
+      let div2 = event.currentTarget.parentNode.nextSibling;
+        div1.parentNode.insertBefore(div2,div1);
+        
+        let mynotes = document.querySelectorAll('.note');
+        let k;
+        
+        
+
+      	for(k = 1; k < mynotes.length-1;k++){
+      		mynotes[k].onmouseover = function(event){
+       		event.currentTarget.children[0].classList.remove('hidden');
+       		event.currentTarget.children[1].classList.remove('hidden');
+            event.currentTarget.children[2].classList.remove('hidden');
+       		event.currentTarget.children[3].classList.remove('hidden');
+       		event.currentTarget.children[4].classList.remove('hidden');
+      	}
+      		mynotes[k].onmouseout = function(event){
+      		event.currentTarget.children[0].classList.add('hidden');
+            event.currentTarget.children[1].classList.add('hidden');
+            event.currentTarget.children[2].classList.add('hidden');
+       		event.currentTarget.children[3].classList.add('hidden');
+       		event.currentTarget.children[4].classList.add('hidden');
+      	}
+      
+      	}
+      	
+      	if(mynotes.length>1){
+      	mynotes[0].onmouseover = function(event){
+       		event.currentTarget.children[0].classList.remove('hidden');
+       		event.currentTarget.children[1].classList.remove('hidden');
+            event.currentTarget.children[2].classList.remove('hidden');
+       		
+       		event.currentTarget.children[4].classList.remove('hidden');
+      	}
+      	mynotes[0].onmouseout = function(event){
+      		event.currentTarget.children[0].classList.add('hidden');
+            event.currentTarget.children[1].classList.add('hidden');
+            event.currentTarget.children[2].classList.add('hidden');
+       		event.currentTarget.children[3].classList.add('hidden');
+       		event.currentTarget.children[4].classList.add('hidden');
+      	}
+      	
+      	mynotes[mynotes.length-1].onmouseover = function(event){
+       		event.currentTarget.children[0].classList.remove('hidden');
+       		event.currentTarget.children[1].classList.remove('hidden');
+            event.currentTarget.children[2].classList.remove('hidden');
+       		
+       		event.currentTarget.children[3].classList.remove('hidden');
+      	}
+      	mynotes[mynotes.length-1].onmouseout = function(event){
+      		event.currentTarget.children[0].classList.add('hidden');
+            event.currentTarget.children[1].classList.add('hidden');
+            event.currentTarget.children[2].classList.add('hidden');
+       		event.currentTarget.children[4].classList.add('hidden');
+       		event.currentTarget.children[3].classList.add('hidden');
+      	}
+      	}
+
+      	
+      }
+      }
+  
+  
+  
+  
+  
+  
+      
+      
+      
+      
+      
+
+      }
+      }
+      
+      
+ 
+
+      // listen for when the filter drop down changes
+      document.querySelector('#filter').onchange = function(event) {
+        // grab the currently selected filter value
+        let currentValue = event.currentTarget.value;
+        let allNotesOfThisClass = document.querySelectorAll( "." + currentValue );
+        if(currentValue === "all"){
+        let everything = document.querySelectorAll('.note');
+        for (let i = 0; i < everything.length; i++) {
+          everything[i].classList.remove('hidden');
+        }
+        
+        }
+        else{
+        // hide EVERYTHING
+        let everything = document.querySelectorAll('.note');
+        for (let i = 0; i < everything.length; i++) {
+          everything[i].classList.add('hidden');
+        }
+
+        // grab a ref to all elements of this class
+        
+
+        // SHOW all elements of the correct class
+        for (let i = 0; i < allNotesOfThisClass.length; i++) {
+          allNotesOfThisClass[i].classList.remove('hidden');
+        }
+        console.log(allNotesOfThisClass);
+        
+        }
+      }
+      
+      document.querySelector('#deleteAll').onclick = function(event){
+      let currentValue =  document.querySelector('#filter').value;
+      let allNotesOfThisClass = document.querySelectorAll( "." + currentValue );
+       if(currentValue === "all"){
+        let everything = document.querySelectorAll('.note');
+        for (let i = 0; i < everything.length; i++) {
+          everything[i].remove();
+        }
+        
+        }
+        for (let i = 0; i < allNotesOfThisClass.length; i++) {
+          allNotesOfThisClass[i].remove();
+        }
+      }
+      
+      
+    </script>
+
+
+  </body>
+
+</html>
+
+
+
+
+
+
+
+
